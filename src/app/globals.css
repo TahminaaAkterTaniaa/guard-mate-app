@@ -10,6 +10,18 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* GuardMate Color Palette */
+  --color-primary: #293991;
+  --color-primary01: #E3F0FF;
+  --color-secondary: #49C2EB;
+  --color-link: #2F4CFF;
+  --color-font: #2A3E48;
+  --color-tab: #3D4B52;
+  --color-medium-gray: #A2AFC3;
+  --color-white: #FFFFFF;
+  --color-bg: #F4F4F4;
+  --color-unselected: #707D94;
 }
 
 @media (prefers-color-scheme: dark) {

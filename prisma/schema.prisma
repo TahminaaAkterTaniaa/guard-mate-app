@@ -1,0 +1,158 @@
+// GuardMate - Prisma Schema
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Multi-tenant models
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  logoUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  guards      Guard[]
+  sites       Site[]
+  managers    Manager[]
+  deployments Deployment[]
+}
+
+// User models
+model Guard {
+  id                String   @id @default(cuid())
+  companyId         String
+  email             String   @unique
+  phone             String   @unique
+  password          String   // Hashed password for authentication
+  name              String
+  profilePictureUrl String?
+  status            String   @default("ACTIVE") // ACTIVE, INACTIVE, ON_LEAVE
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  company           Company     @relation(fields: [companyId], references: [id])
+  checkIns          CheckIn[]
+  incidents         Incident[]
+  leaves            Leave[]
+  deployments       Deployment[]
+}
+
+model Manager {
+  id                String   @id @default(cuid())
+  companyId         String
+  email             String   @unique
+  phone             String
+  name              String
+  password          String   // Hashed password for authentication
+  profilePictureUrl String?
+  role              String   @default("MANAGER") // MANAGER, ADMIN
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  company           Company     @relation(fields: [companyId], references: [id])
+  managedSites      Site[]
+  approvedIncidents Incident[]
+  approvedLeaves    Leave[]
+}
+
+// Operational models
+model Site {
+  id          String   @id @default(cuid())
+  companyId   String
+  name        String
+  address     String
+  latitude    Float?
+  longitude   Float?
+  qrCodeUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  company     Company     @relation(fields: [companyId], references: [id])
+  manager     Manager?    @relation(fields: [managerId], references: [id])
+  managerId   String?
+  deployments Deployment[]
+  checkIns    CheckIn[]
+}
+
+model Deployment {
+  id        String   @id @default(cuid())
+  companyId String
+  guardId   String
+  siteId    String
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("SCHEDULED") // SCHEDULED, ACTIVE, COMPLETED, CANCELLED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  company   Company @relation(fields: [companyId], references: [id])
+  guard     Guard   @relation(fields: [guardId], references: [id])
+  site      Site    @relation(fields: [siteId], references: [id])
+}
+
+model CheckIn {
+  id                String   @id @default(cuid())
+  guardId           String
+  siteId            String
+  checkInTime       DateTime @default(now())
+  checkOutTime      DateTime?
+  status            String   @default("CHECKED_IN") // CHECKED_IN, CHECKED_OUT
+  faceMatchScore    Float?
+  latitude          Float?
+  longitude         Float?
+  qrCodeVerified    Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  guard             Guard     @relation(fields: [guardId], references: [id])
+  site              Site      @relation(fields: [siteId], references: [id])
+}
+
+model Incident {
+  id          String   @id @default(cuid())
+  guardId     String
+  title       String
+  description String
+  severity    String   @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  status      String   @default("REPORTED") // REPORTED, UNDER_REVIEW, RESOLVED
+  imageUrls   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  guard       Guard    @relation(fields: [guardId], references: [id])
+  approvedBy  Manager? @relation(fields: [managerId], references: [id])
+  managerId   String?
+}
+
+model Leave {
+  id          String   @id @default(cuid())
+  guardId     String
+  startDate   DateTime
+  endDate     DateTime
+  reason      String
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  documentUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  guard       Guard    @relation(fields: [guardId], references: [id])
+  approvedBy  Manager? @relation(fields: [managerId], references: [id])
+  managerId   String?
+}
