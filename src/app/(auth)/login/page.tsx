@@ -45,6 +45,8 @@ export default function LoginPage() {
     setError('')
 
     try {
+      console.log('Attempting login with:', data.email)
+      
       const result = await signIn('credentials', {
         redirect: false,
         email: data.email,
@@ -52,16 +54,21 @@ export default function LoginPage() {
         callbackUrl: '/home',
       })
 
+      console.log('SignIn result:', result)
+
       if (result?.error) {
-        setError('Invalid email or password')
+        console.error('Login error:', result.error)
+        setError(`Login failed: ${result.error}`)
         setIsLoading(false)
         return
       }
 
       // Redirect to home on successful login
+      console.log('Login successful, redirecting to /home')
       router.push('/home')
-    } catch {
-      setError('An error occurred. Please try again.')
+    } catch (err) {
+      console.error('Login exception:', err)
+      setError(`An error occurred: ${err instanceof Error ? err.message : 'Unknown error'}`)
       setIsLoading(false)
     }
   }

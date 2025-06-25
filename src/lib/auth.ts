@@ -12,6 +12,7 @@ export const authOptions: NextAuthOptions = {
   // Temporarily comment out adapter until type issues are resolved
   // adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET || "guardmate-very-secure-secret-key-123",
+  debug: process.env.NODE_ENV !== 'production',
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
