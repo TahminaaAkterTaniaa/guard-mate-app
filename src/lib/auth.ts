@@ -1,3 +1,5 @@
+////guard-mate-app/src/lib/auth.ts
+
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 // Use PrismaAdapter only for user/account operations, not for authentication
