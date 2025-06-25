@@ -52,7 +52,7 @@ export const authOptions: NextAuthOptions = {
             // Use type assertion to handle the password field that TypeScript doesn't recognize
             const isValid = await verifyPassword(
               credentials.password, 
-              (guard as any).password
+              (guard as {password: string}).password
             )
             if (!isValid) {
               console.log('Invalid guard password')
@@ -90,7 +90,7 @@ export const authOptions: NextAuthOptions = {
             // Use type assertion to handle the password field that TypeScript doesn't recognize
             const isValid = await verifyPassword(
               credentials.password, 
-              (manager as any).password
+              (manager as {password: string}).password
             )
             if (!isValid) {
               console.log('Invalid manager password')

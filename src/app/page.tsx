@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSession } from 'next-auth/react';
-import colors from '@/constants/colors';
 
 export default function Home() {
   const router = useRouter();

@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       data: {
         name: validatedData.name,
         phone: validatedData.phone,
-        email: validatedData.email || null,
+        email: validatedData.email || '',
         password: hashedPassword, // Store the hashed password
         companyId: companyId || '',
         status: 'PENDING', // Require admin approval
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     )
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid registration data', details: error.errors },

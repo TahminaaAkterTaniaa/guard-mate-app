@@ -32,7 +32,7 @@ export default function BottomNavigationBar() {
               {label === 'Home' ? (
                 <HomeIcon disable={!isActive} />
               ) : (
-                // @ts-ignore - Different icon components have different prop requirements
+                // @ts-expect-error - Different icon components have different prop requirements
                 <Icon />
               )}
               <span className={clsx('text-[10px]', isActive ? 'text-black' : 'text-gray-500')}>

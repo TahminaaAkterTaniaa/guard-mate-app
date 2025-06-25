@@ -49,7 +49,7 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   })
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const onSubmit = async () => {
     setIsLoading(true)
     setError('')
     setSuccess(false)

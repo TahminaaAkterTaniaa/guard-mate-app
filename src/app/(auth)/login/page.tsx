@@ -13,7 +13,6 @@ import Image from 'next/image'
 import OpenEyeIcon from '../../../../public/icons/OpenEyeIcon'
 import CloseEyeSlashIcon from '../../../../public/icons/CloseEyeSlashIcon'
 import { Button } from '@/components/ui/Button'
-import colors from '@/constants/colors'
 
 // Form schema validation
 const loginSchema = z.object({
@@ -61,7 +60,7 @@ export default function LoginPage() {
 
       // Redirect to home on successful login
       router.push('/home')
-    } catch (error) {
+    } catch {
       setError('An error occurred. Please try again.')
       setIsLoading(false)
     }

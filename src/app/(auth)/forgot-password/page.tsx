@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
     resolver: zodResolver(forgotPasswordSchema),
   })
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
+  const onSubmit = async () => {
     setIsLoading(true)
     setError('')
     setSuccess(false)
@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
       // For demonstration, we'll just show a success message
       setSuccess(true)
       setIsLoading(false)
-    } catch (error) {
+    } catch {
       setError('An error occurred. Please try again.')
       setIsLoading(false)
     }
