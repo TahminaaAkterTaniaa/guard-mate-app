@@ -10,8 +10,6 @@ import HrmIcon from '../../../../public/icons/hrmIcon';
 import OperationIcon from '../../../../public/icons/operationIcon';
 import CheckInIcon from '../../../../public/icons/checkInIcon';
 import ProgressIcon from '../../../../public/icons/progressIcon';
-import PlusIcon from '../../../../public/icons/plusIcon';
-import TeamIcon from '../../../../public/icons/teamIcon';
 
 export default function HomePage() {
   // Note: Date formatting is now handled in TopProfileHeader component

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 const createAttendanceSchema = z.object({
   companyId: z.string(),
@@ -14,16 +16,6 @@ const createAttendanceSchema = z.object({
   }).optional(),
   checkInMethod: z.enum(["QR_CODE", "GPS_ONLY", "MANUAL_OVERRIDE", "FACIAL_RECOGNITION"]),
   checkInPhoto: z.string().optional(),
-});
-
-const checkOutSchema = z.object({
-  checkOutTime: z.string().transform((str) => new Date(str)),
-  checkOutCoordinates: z.object({
-    lat: z.number(),
-    lng: z.number()
-  }).optional(),
-  checkOutMethod: z.enum(["QR_CODE", "GPS_ONLY", "MANUAL_OVERRIDE", "FACIAL_RECOGNITION"]),
-  checkOutPhoto: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -126,6 +118,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
     const body = await request.json();
     const validatedData = createAttendanceSchema.parse(body);
 

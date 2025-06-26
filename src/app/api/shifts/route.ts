@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const createShiftSchema = z.object({
@@ -54,7 +54,13 @@ export async function GET(request: NextRequest) {
           }
         },
         orderBy: { createdAt: "desc" }
-      }),
+      }).then(shifts => 
+        shifts.map(shift => ({
+          ...shift,
+          requiredSkills: shift.requiredSkills ? JSON.parse(shift.requiredSkills) : [],
+          daysOfWeek: shift.daysOfWeek ? JSON.parse(shift.daysOfWeek) : []
+        }))
+      ),
       prisma.shift.count({ where })
     ]);
 
@@ -95,8 +101,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Convert arrays to JSON strings before saving
+    const shiftData = {
+      ...validatedData,
+      requiredSkills: validatedData.requiredSkills.length > 0 
+        ? JSON.stringify(validatedData.requiredSkills) 
+        : null,
+      daysOfWeek: validatedData.daysOfWeek.length > 0 
+        ? JSON.stringify(validatedData.daysOfWeek) 
+        : null,
+    };
+
     const shift = await prisma.shift.create({
-      data: validatedData,
+      data: shiftData,
       include: {
         company: {
           select: { name: true }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const createLeaveRequestSchema = z.object({
@@ -53,7 +53,9 @@ export async function POST(request: NextRequest) {
         ...validatedData,
         totalDays,
         status: "PENDING",
-        appliedAt: new Date()
+        appliedAt: new Date(),
+        // Convert documents array to JSON string as required by Prisma schema
+        documents: validatedData.documents ? JSON.stringify(validatedData.documents) : null
       },
       include: {
         user: { select: { firstName: true, lastName: true, email: true } }

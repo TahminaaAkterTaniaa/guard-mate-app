@@ -13,7 +13,6 @@ async function main() {
     create: {
       id: 'cltest123company',
       name: 'GuardMate Security Inc.',
-      description: 'A leading security company providing professional guard services.',
       logoUrl: '/logo.png',
     },
   });

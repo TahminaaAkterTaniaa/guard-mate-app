@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 const createIncidentSchema = z.object({
   companyId: z.string(),
@@ -42,8 +42,21 @@ const createIncidentSchema = z.object({
   followUpNotes: z.string().optional()
 });
 
-const updateIncidentSchema = createIncidentSchema.partial()
-  .omit({ companyId: true, locationId: true, reportedBy: true })
+// Create a new partial schema without the fields we don't want to update
+const updateIncidentSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  incidentType: z.enum(["SECURITY_BREACH", "SAFETY_HAZARD", "EQUIPMENT_ISSUE", "MEDICAL_EMERGENCY", "THEFT", "VANDALISM", "UNAUTHORIZED_ACCESS", "FIRE_EMERGENCY", "OTHER"]).optional(),
+  severity: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]).optional(),
+  status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]).optional(),
+  resolution: z.string().optional(),
+  assignedTo: z.string().optional(),
+  witnessStatements: z.string().optional(),
+  securityFootage: z.boolean().optional(),
+  followUpRequired: z.boolean().optional(),
+  followUpDate: z.string().transform(str => new Date(str)).optional(),
+  followUpNotes: z.string().optional()
+})
   .extend({
     status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]).optional(),
     resolution: z.string().optional(),
@@ -107,21 +120,6 @@ export async function GET(request: NextRequest) {
               lastName: true,
               email: true,
               phoneNumber: true
-            }
-          },
-          assignedToUser: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          },
-          _count: {
-            select: {
-              photos: true,
-              videos: true,
-              witnesses: true
             }
           }
         },
@@ -200,24 +198,19 @@ export async function POST(request: NextRequest) {
         status: "OPEN",
         priority: validatedData.priority || getDefaultPriority(validatedData.severity),
         reportedAt: new Date(),
-        witnesses: validatedData.witnesses ? JSON.stringify(validatedData.witnesses) : undefined
+        witnesses: validatedData.witnesses ? JSON.stringify(validatedData.witnesses) : undefined,
+        photos: validatedData.photos ? JSON.stringify(validatedData.photos) : null,
+        videos: validatedData.videos ? JSON.stringify(validatedData.videos) : "[]"
       },
       include: {
-        location: {
-          select: { name: true, siteCode: true }
-        },
+        company: { select: { name: true } },
+        location: { select: { name: true, siteCode: true } },
         reporter: {
           select: {
             firstName: true,
             lastName: true,
-            email: true
-          }
-        },
-        assignedToUser: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
+            email: true,
+            employeeId: true
           }
         }
       }

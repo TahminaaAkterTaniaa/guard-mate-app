@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const createTrainingSchema = z.object({
@@ -10,6 +10,8 @@ const createTrainingSchema = z.object({
   duration: z.number().positive(),
   isRequired: z.boolean().default(false),
   expiryMonths: z.number().positive().optional(),
+  category: z.string().default("general"),
+  contentType: z.string().default("document"),
 });
 
 export async function GET(request: NextRequest) {
@@ -28,7 +30,7 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         company: { select: { name: true } },
-        _count: { select: { enrollments: true } }
+        _count: { select: { userTrainings: true } }
       },
       orderBy: { createdAt: "desc" }
     });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const checkOutSchema = z.object({
@@ -14,15 +14,18 @@ const checkOutSchema = z.object({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const body = await request.json();
     const validatedData = checkOutSchema.parse(body);
 
+    const attendanceId = params.id;
+
     // Get the existing attendance record
     const attendance = await prisma.attendance.findUnique({
-      where: { id: params.id },
+      where: { id: attendanceId },
       include: {
         deployment: {
           include: {
@@ -52,7 +55,6 @@ export async function PUT(
     }
 
     // Validate GPS coordinates for checkout if provided
-    let isGpsValidCheckOut = false;
     if (validatedData.checkOutCoordinates && attendance.deployment.location.coordinates) {
       const locationCoords = attendance.deployment.location.coordinates as { lat: number; lng: number };
       const distance = calculateDistance(
@@ -61,7 +63,12 @@ export async function PUT(
         locationCoords.lat,
         locationCoords.lng
       );
-      isGpsValidCheckOut = distance <= attendance.deployment.location.gpsRadius;
+      if (distance > attendance.deployment.location.gpsRadius) {
+        return NextResponse.json(
+          { error: "You are too far from the assigned location to check out" },
+          { status: 400 }
+        );
+      }
     }
 
     // Calculate hours worked
@@ -71,7 +78,7 @@ export async function PUT(
     const overtimeHours = Math.max(0, hoursWorked - 8);
 
     const updatedAttendance = await prisma.attendance.update({
-      where: { id: params.id },
+      where: { id: attendanceId },
       data: {
         checkOutTime: validatedData.checkOutTime,
         checkOutCoordinates: validatedData.checkOutCoordinates,

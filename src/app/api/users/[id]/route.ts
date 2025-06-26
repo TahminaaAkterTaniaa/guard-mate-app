@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -23,9 +23,10 @@ const updateUserSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const user = await prisma.user.findUnique({
       where: { id: params.id },
       include: {
@@ -93,14 +94,15 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const body = await request.json();
     const validatedData = updateUserSchema.parse(body);
 
     // Hash password if provided
-    let updateData: any = { ...validatedData };
+    const updateData: any = { ...validatedData };
     if (validatedData.password) {
       updateData.password = await bcrypt.hash(validatedData.password, 10);
     }
@@ -160,9 +162,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     await prisma.user.delete({
       where: { id: params.id }
     });

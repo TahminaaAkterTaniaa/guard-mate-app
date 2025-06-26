@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const createExpenseSchema = z.object({
@@ -7,7 +7,7 @@ const createExpenseSchema = z.object({
   userId: z.string(),
   amount: z.number().positive(),
   currency: z.string().default("USD"),
-  category: z.enum(["TRAVEL", "MEALS", "EQUIPMENT", "UNIFORM", "TRAINING", "MEDICAL", "OTHER"]),
+  category: z.enum(["TRAVEL", "MEALS", "ACCOMMODATION", "COMMUNICATION", "MEDICAL", "EQUIPMENT", "OTHER"]),
   description: z.string().min(1),
   receiptUrl: z.string().url().optional(),
   expenseDate: z.string().transform((str) => new Date(str)),
@@ -39,8 +39,7 @@ export async function GET(request: NextRequest) {
             employeeId: true 
           } 
         },
-        company: { select: { name: true } },
-        location: { select: { name: true, siteCode: true } }
+        company: { select: { name: true } }
       },
       orderBy: { expenseDate: "desc" }
     });
@@ -60,12 +59,13 @@ export async function POST(request: NextRequest) {
     const expense = await prisma.expense.create({
       data: {
         ...validatedData,
+        title: validatedData.description || 'Expense',  // Use description as title if not provided
         status: "PENDING",
         submittedAt: new Date()
       },
       include: {
         user: { select: { firstName: true, lastName: true, employeeId: true } },
-        location: { select: { name: true, siteCode: true } }
+        company: { select: { name: true } }
       }
     });
 

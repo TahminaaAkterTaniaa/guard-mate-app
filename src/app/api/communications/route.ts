@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const createCommunicationSchema = z.object({
@@ -32,10 +32,9 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         sender: { select: { firstName: true, lastName: true, email: true } },
-        receiver: { select: { firstName: true, lastName: true, email: true } },
-        location: { select: { name: true, siteCode: true } }
+        receivers: { select: { firstName: true, lastName: true, email: true } }
       },
-      orderBy: { sentAt: "desc" }
+      orderBy: { createdAt: "desc" }
     });
 
     return NextResponse.json({ communications });
@@ -52,12 +51,18 @@ export async function POST(request: NextRequest) {
 
     const communication = await prisma.communication.create({
       data: {
-        ...validatedData,
-        sentAt: new Date()
+        title: validatedData.subject,
+        content: validatedData.message,
+        messageType: validatedData.type as any, // Map validation type to messageType
+        priority: validatedData.priority.toUpperCase() as any, // Convert to uppercase for enum
+        senderId: validatedData.senderId,
+        companyId: validatedData.companyId,
+        isBroadcast: !validatedData.receiverId, // If no specific receiver, it's a broadcast
+        receiverIds: validatedData.receiverId ? JSON.stringify([validatedData.receiverId]) : null
       },
       include: {
-        sender: { select: { firstName: true, lastName: true } },
-        receiver: { select: { firstName: true, lastName: true } }
+        sender: { select: { firstName: true, lastName: true, email: true } },
+        receivers: { select: { firstName: true, lastName: true, email: true } }
       }
     });
 

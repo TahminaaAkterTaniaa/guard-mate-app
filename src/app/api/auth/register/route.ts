@@ -23,13 +23,13 @@ export async function POST(req: Request) {
     const validatedData = registerSchema.parse(body)
     
     // Check if user already exists
-    const existingUser = await prisma.guard.findUnique({
-      where: { phone: validatedData.phone },
+    const existingUser = await prisma.user.findUnique({
+      where: { email: validatedData.email || `${validatedData.phone}@temp.com` },
     })
     
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User with this phone number already exists' },
+        { error: 'User with this email already exists' },
         { status: 400 }
       )
     }
@@ -48,22 +48,24 @@ export async function POST(req: Request) {
       const company = await prisma.company.create({
         data: {
           name: validatedData.company,
-          // Note: Company doesn't have a status field in the schema
-          // We'll track company approval state in a different way
+          phoneNumber: '000-000-0000', // Required field - placeholder
+          email: 'contact@company.com', // Required field - placeholder
         },
       })
       companyId = company.id
     }
     
     // Create the user as a guard
-    const newUser = await prisma.guard.create({
+    const newUser = await prisma.user.create({
       data: {
-        name: validatedData.name,
-        phone: validatedData.phone,
-        email: validatedData.email || '',
+        firstName: validatedData.name.split(' ')[0] || validatedData.name,
+        lastName: validatedData.name.split(' ').slice(1).join(' ') || '',
+        phoneNumber: validatedData.phone,
+        email: validatedData.email || `${validatedData.phone}@temp.com`,
         password: hashedPassword, // Store the hashed password
         companyId: companyId || '',
-        status: 'PENDING', // Require admin approval
+        role: 'GUARD',
+        status: 'ACTIVE', // Use valid UserStatus enum value
       },
     })
     

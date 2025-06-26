@@ -350,7 +350,7 @@ async function main() {
         overtimeRate: 33.75,
         requiredGuards: 1,
         isRecurring: true,
-        daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+        daysOfWeek: JSON.stringify(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
       }
     }),
     prisma.shift.create({
@@ -365,7 +365,7 @@ async function main() {
         overtimeRate: 36.00,
         requiredGuards: 1,
         isRecurring: true,
-        daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+        daysOfWeek: JSON.stringify(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
       }
     }),
     prisma.shift.create({
@@ -380,7 +380,7 @@ async function main() {
         overtimeRate: 39.00,
         requiredGuards: 1,
         isRecurring: true,
-        daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+        daysOfWeek: JSON.stringify(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
       }
     }),
     prisma.shift.create({
@@ -395,7 +395,7 @@ async function main() {
         overtimeRate: 42.00,
         requiredGuards: 1,
         isRecurring: true,
-        daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+        daysOfWeek: JSON.stringify(['monday', 'tuesday', 'wednesday', 'thursday', 'friday']),
       }
     }),
     prisma.shift.create({
@@ -410,7 +410,7 @@ async function main() {
         overtimeRate: 37.50,
         requiredGuards: 1,
         isRecurring: true,
-        daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+        daysOfWeek: JSON.stringify(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
       }
     })
   ]);

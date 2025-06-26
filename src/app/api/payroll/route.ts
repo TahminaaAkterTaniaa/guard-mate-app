@@ -1,19 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const createPayrollSchema = z.object({
   companyId: z.string(),
   userId: z.string(),
-  payPeriodStart: z.string().transform((str) => new Date(str)),
-  payPeriodEnd: z.string().transform((str) => new Date(str)),
-  baseRate: z.number().positive(),
-  overtimeRate: z.number().positive(),
-  hoursWorked: z.number().min(0),
+  periodStart: z.string().transform((str) => new Date(str)),
+  periodEnd: z.string().transform((str) => new Date(str)),
+  payDate: z.string().transform((str) => new Date(str)),
+  regularHours: z.number().min(0),
   overtimeHours: z.number().min(0),
-  deductions: z.number().min(0).optional(),
-  bonuses: z.number().min(0).optional(),
-  allowances: z.number().min(0).optional(),
+  nightHours: z.number().min(0).default(0),
+  regularEarnings: z.number().min(0),
+  overtimeEarnings: z.number().min(0),
+  nightEarnings: z.number().min(0).default(0),
+  bonusEarnings: z.number().min(0).default(0),
+  taxDeduction: z.number().min(0).default(0),
+  otherDeductions: z.number().min(0).default(0),
+  grossPay: z.number().min(0),
+  netPay: z.number().min(0),
 });
 
 export async function GET(request: NextRequest) {
@@ -49,7 +54,7 @@ export async function GET(request: NextRequest) {
         },
         company: { select: { name: true } }
       },
-      orderBy: { payPeriodEnd: "desc" }
+      orderBy: { periodEnd: "desc" }
     });
 
     return NextResponse.json({ payrollRecords });
@@ -64,20 +69,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = createPayrollSchema.parse(body);
     
-    const basePay = validatedData.hoursWorked * validatedData.baseRate;
-    const overtimePay = validatedData.overtimeHours * validatedData.overtimeRate;
-    const grossPay = basePay + overtimePay + (validatedData.bonuses || 0) + (validatedData.allowances || 0);
-    const netPay = grossPay - (validatedData.deductions || 0);
-
     const payroll = await prisma.payroll.create({
       data: {
         ...validatedData,
-        basePay,
-        overtimePay,
-        grossPay,
-        netPay,
-        status: "PENDING",
-        generatedAt: new Date()
+        status: "DRAFT",
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
       include: {
         user: { select: { firstName: true, lastName: true, employeeId: true } }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const createAuditLogSchema = z.object({
@@ -44,10 +44,6 @@ export async function GET(request: NextRequest) {
         where,
         skip,
         take: limit,
-        include: {
-          user: { select: { firstName: true, lastName: true, email: true } },
-          company: { select: { name: true } }
-        },
         orderBy: { timestamp: "desc" }
       }),
       prisma.auditLog.count({ where })

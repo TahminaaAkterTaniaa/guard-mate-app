@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 const createInvoiceSchema = z.object({
@@ -27,8 +27,7 @@ export async function GET(request: NextRequest) {
     const invoices = await prisma.invoice.findMany({
       where,
       include: {
-        company: { select: { name: true } },
-        client: { select: { name: true, email: true } }
+        company: { select: { name: true } }
       },
       orderBy: { issuedAt: "desc" }
     });
@@ -47,12 +46,28 @@ export async function POST(request: NextRequest) {
 
     const invoice = await prisma.invoice.create({
       data: {
-        ...validatedData,
+        companyId: validatedData.companyId,
+        invoiceNumber: validatedData.invoiceNumber,
+        billingPeriodStart: validatedData.servicesPeriodStart,
+        billingPeriodEnd: validatedData.servicesPeriodEnd,
+        dueDate: validatedData.dueDate,
+        subtotal: validatedData.amount,
+        taxAmount: 0, // No tax info in schema, set to 0 as default
+        totalAmount: validatedData.amount,
+        paidAmount: 0,
         status: "PENDING",
-        issuedAt: new Date()
+        issuedAt: new Date(),
+        // Store extra fields as line items
+        lineItems: JSON.stringify([
+          {
+            description: validatedData.description,
+            amount: validatedData.amount,
+            currency: validatedData.currency
+          }
+        ])
       },
       include: {
-        client: { select: { name: true, email: true } }
+        company: { select: { name: true } }
       }
     });
 

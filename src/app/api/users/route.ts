@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -53,7 +53,13 @@ export async function GET(request: NextRequest) {
           }
         },
         orderBy: { createdAt: "desc" }
-      }),
+      }).then(users => 
+        users.map(user => ({
+          ...user,
+          skills: user.skills ? JSON.parse(user.skills) : [],
+          certifications: user.certifications ? JSON.parse(user.certifications) : []
+        }))
+      ),
       prisma.user.count({ where })
     ]);
 
@@ -106,11 +112,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Convert arrays to JSON strings before saving
+    const userData = {
+      ...validatedData,
+      password: hashedPassword,
+      skills: validatedData.skills?.length ? JSON.stringify(validatedData.skills) : null,
+      certifications: validatedData.certifications?.length ? JSON.stringify(validatedData.certifications) : null
+    };
+
     const user = await prisma.user.create({
-      data: {
-        ...validatedData,
-        password: hashedPassword,
-      },
+      data: userData,
       include: {
         company: {
           select: { name: true }
