@@ -8,7 +8,7 @@ import { SessionProvider } from 'next-auth/react'
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <div className="min-h-screen w-full mx-auto flex flex-col bg-gray-50 relative">
+      <div className="h-screen w-full flex flex-col bg-gray-50 relative">
         <TopProfileHeader />
         <main className="flex-1 overflow-y-auto pb-20">
           {children}

@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -53,8 +53,6 @@ model Company {
   expenses         Expense[]
   trainings        Training[]
   communications   Communication[]
-  attendances      Attendance[]
-  payrolls         Payroll[]
   
   @@map("companies")
 }
@@ -89,8 +87,8 @@ model User {
   emergencyPhone    String?
   
   // Guard Specific
-  skills            String? // JSON string of skills array
-  certifications    String? // JSON string of certifications array
+  skills            String[] // JSON array of skills
+  certifications    String[] // JSON array of certifications
   hourlyRate        Float?
   isAvailable       Boolean  @default(true)
   
@@ -105,8 +103,6 @@ model User {
   
   // Relations
   company           Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  accounts          Account[]
-  sessions          Session[]
   deployments       Deployment[]
   attendances       Attendance[]
   incidents         Incident[]
@@ -209,17 +205,17 @@ model Shift {
   
   // Shift Details
   name          String
-  startTime     DateTime
-  endTime       DateTime
+  startTime     String   // HH:MM format
+  endTime       String   // HH:MM format
   duration      Int      // minutes
   
   // Requirements
   requiredGuards Int     @default(1)
-  requiredSkills String? // JSON string of required skills array
+  requiredSkills String[] // JSON array
   
   // Shift Pattern
   isRecurring   Boolean  @default(false)
-  daysOfWeek    String? // JSON string of days: ["monday", "tuesday", ...]
+  daysOfWeek    String[] // ["monday", "tuesday", ...]
   
   // Rates
   baseRate      Float?
@@ -270,10 +266,7 @@ model Deployment {
   company       Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   shift         Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
   user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  location      Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
   attendances   Attendance[]
-  
-  locationId    String
   
   @@unique([shiftId, date, userId])
   @@map("deployments")
@@ -353,8 +346,8 @@ model Incident {
   reportedAt      DateTime @default(now())
   
   // Evidence
-  photos          String? // JSON string of photo URLs array
-  videos          String? // JSON string of video URLs array
+  photos          String[] // Array of photo URLs
+  videos          String[] // Array of video URLs
   audioNotes      String?
   
   // Witnesses
@@ -404,7 +397,7 @@ model LeaveRequest {
   
   // Application Details
   reason          String
-  documents       String? // JSON string of supporting documents URLs array
+  documents       String[] // Supporting documents URLs
   emergencyContact String?
   
   // Approval Workflow
@@ -576,7 +569,7 @@ model Training {
   
   // Requirements
   isRequired      Boolean  @default(false)
-  prerequisites   String? // JSON string of training IDs array
+  prerequisites   String[] // Array of training IDs
   
   // Certification
   certificateTemplate String?
@@ -641,21 +634,21 @@ model Communication {
   
   // Sender/Receiver
   senderId        String
-  receiverIds     String? // JSON string of user IDs for targeted messages
+  receiverIds     String[] // Array of user IDs for targeted messages
   
   // Broadcast Settings
   isBroadcast     Boolean  @default(false)
-  targetRoles     String? // JSON string of UserRole for role-based broadcasts
-  targetLocations String? // JSON string of location IDs for location-based broadcasts
+  targetRoles     UserRole[] // For role-based broadcasts
+  targetLocations String[] // For location-based broadcasts
   
   // Attachments
-  attachments     String? // JSON string of attachment URLs
+  attachments     String[] // URLs to attachments
   
   // Status
   isRead          Boolean  @default(false)
   readAt          DateTime?
   requiresAcknowledgment Boolean @default(false)
-  acknowledgedBy  String? // JSON string of user IDs who acknowledged
+  acknowledgedBy  String[] // Array of user IDs who acknowledged
   
   // Scheduling
   scheduledFor    DateTime?

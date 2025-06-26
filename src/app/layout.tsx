@@ -16,12 +16,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-layout text-foreground`}>
-        <div className="relative mx-auto max-w-[430px] min-h-screen bg-layout flex flex-col">
-        
-            {children}
-       
-
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <div className="relative mx-auto max-w-[430px] min-h-screen bg-layout">
+          {children}
           <ToastContainer />
         </div>
       </body>

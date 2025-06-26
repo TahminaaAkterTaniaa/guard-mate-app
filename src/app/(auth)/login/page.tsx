@@ -74,28 +74,28 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="bg-primary flex h-screen w-full items-center justify-center">
-      <div className="w-[430px] max-w-[430px] h-[90%] rounded-xl ">
+    <div className="bg-primary flex h-screen w-full items-center justify-center p-0 m-0">
+      <div className="w-full max-w-[430px] h-full flex flex-col justify-center px-4">
         {/* Logo */}
-        <div className="flex justify-center">
-          <div className="relative h-[261px] w-[428px]">
+        <div className="flex justify-center mb-6">
+          <div className="relative h-[200px] w-[300px]">
             <Image src="/images/logo.png" alt="GuardMate Logo" fill className="object-contain" />
           </div>
         </div>
 
         {/* Welcome Text */}
-        <div className="mb-6 text-center">
-          <h1 className="mb-1 text-2xl font-bold text-white">Welcome back!</h1>
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-2xl font-bold text-white">Welcome back!</h1>
           <p className="text-white/80">Login to your account</p>
         </div>
 
         {error && (
-          <div className="mx-8 mb-6 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+          <div className="mx-4 mb-6 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
             {error}
           </div>
         )}
 
-        <form className="space-y-4 px-8 pb-6 mt-[50px]" onSubmit={handleSubmit(onSubmit)}>
+        <form className="space-y-6 px-4" onSubmit={handleSubmit(onSubmit)}>
           {/* Email Field */}
           <div>
             <label htmlFor="email" className="mb-1 block text-sm text-white">
@@ -143,7 +143,7 @@ export default function LoginPage() {
           </div>
 
           {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between mt-[60px]">
+          <div className="flex items-center justify-between mt-8">
             <div className="flex items-center">
               <input
                 id="rememberMe"
@@ -166,7 +166,7 @@ export default function LoginPage() {
             disabled={isLoading}
             variant="whitePrimary"
             size="lg"
-            className="mt-6 w-full rounded-xl text-primary shadow-md "
+            className="mt-8 w-full rounded-xl text-primary shadow-md"
             isLoading={isLoading}
           >
             {isLoading ? 'Logging In...' : 'Log In'}

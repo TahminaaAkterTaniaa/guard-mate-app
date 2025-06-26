@@ -1,0 +1,259 @@
+erDiagram
+    %% Core Entity Relationships for GuardMate Platform
+    
+    Company ||--o{ User : "has many"
+    Company ||--o{ Location : "has many"
+    Company ||--o{ Shift : "has many"
+    Company ||--o{ Deployment : "has many"
+    Company ||--o{ Incident : "has many"
+    Company ||--o{ LeaveRequest : "has many"
+    Company ||--o{ Invoice : "has many"
+    Company ||--o{ Expense : "has many"
+    Company ||--o{ Training : "has many"
+    Company ||--o{ Communication : "has many"
+    
+    User ||--o{ Account : "has many"
+    User ||--o{ Session : "has many"
+    User ||--o{ Deployment : "assigned to"
+    User ||--o{ Attendance : "has many"
+    User ||--o{ Incident : "reports"
+    User ||--o{ LeaveRequest : "submits"
+    User ||--o{ Expense : "submits"
+    User ||--o{ Payroll : "receives"
+    User ||--o{ UserTraining : "enrolls in"
+    User ||--o{ Communication : "sends"
+    User ||--o{ Communication : "receives"
+    User ||--o{ PerformanceReview : "reviewed"
+    
+    Location ||--o{ Shift : "has many"
+    Location ||--o{ Deployment : "hosts"
+    Location ||--o{ Incident : "occurs at"
+    Location ||--o{ Attendance : "recorded at"
+    
+    Shift ||--o{ Deployment : "has many"
+    
+    Deployment ||--o{ Attendance : "tracked by"
+    
+    Training ||--o{ UserTraining : "has many"
+    
+    %% Entity Definitions
+    
+    Company {
+        string id PK
+        string name
+        string email UK
+        string subscriptionTier
+        int maxGuards
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    User {
+        string id PK
+        string companyId FK
+        string firstName
+        string lastName
+        string email UK
+        string phoneNumber UK
+        enum role
+        string faceEncodingData
+        enum status
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Location {
+        string id PK
+        string companyId FK
+        string name
+        string address
+        string siteCode UK
+        json coordinates
+        string qrCode
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Shift {
+        string id PK
+        string companyId FK
+        string locationId FK
+        string name
+        string startTime
+        string endTime
+        int requiredGuards
+        array requiredSkills
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Deployment {
+        string id PK
+        string companyId FK
+        string shiftId FK
+        string userId FK
+        datetime date
+        datetime startTime
+        datetime endTime
+        enum status
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Attendance {
+        string id PK
+        string companyId FK
+        string userId FK
+        string deploymentId FK
+        string locationId FK
+        datetime checkInTime
+        datetime checkOutTime
+        enum checkInMethod
+        boolean isGpsValid
+        boolean isQrValid
+        boolean isFaceValid
+        enum status
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Incident {
+        string id PK
+        string companyId FK
+        string locationId FK
+        string reportedBy FK
+        string title
+        string description
+        enum incidentType
+        enum severity
+        datetime occurredAt
+        array photos
+        enum status
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    LeaveRequest {
+        string id PK
+        string companyId FK
+        string userId FK
+        enum leaveType
+        datetime startDate
+        datetime endDate
+        int totalDays
+        string reason
+        enum status
+        datetime appliedAt
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Payroll {
+        string id PK
+        string companyId FK
+        string userId FK
+        datetime periodStart
+        datetime periodEnd
+        float regularHours
+        float overtimeHours
+        float grossPay
+        float netPay
+        enum status
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Expense {
+        string id PK
+        string companyId FK
+        string userId FK
+        string title
+        enum category
+        float amount
+        datetime expenseDate
+        string receipt
+        enum status
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Training {
+        string id PK
+        string companyId FK
+        string title
+        string description
+        string contentType
+        string contentUrl
+        boolean isRequired
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    UserTraining {
+        string id PK
+        string userId FK
+        string trainingId FK
+        enum status
+        int progress
+        int score
+        datetime startedAt
+        datetime completedAt
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Communication {
+        string id PK
+        string companyId FK
+        string senderId FK
+        string title
+        string content
+        enum messageType
+        enum priority
+        boolean isBroadcast
+        array receiverIds
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Invoice {
+        string id PK
+        string companyId FK
+        string invoiceNumber UK
+        datetime billingPeriodStart
+        datetime billingPeriodEnd
+        float totalAmount
+        float paidAmount
+        enum status
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    PerformanceReview {
+        string id PK
+        string userId FK
+        datetime reviewPeriodStart
+        datetime reviewPeriodEnd
+        float attendanceScore
+        float punctualityScore
+        float overallRating
+        string status
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    AuditLog {
+        string id PK
+        string companyId FK
+        string userId FK
+        string action
+        string resource
+        string resourceId
+        json oldValues
+        json newValues
+        datetime timestamp
+    }

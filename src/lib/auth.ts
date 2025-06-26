@@ -6,7 +6,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 // We'll keep the import but comment out its usage due to type compatibility issues
 // import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from './db'
-import { verifyPassword } from './utils/auth-utils'
+import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
   // Temporarily comment out adapter until type issues are resolved
@@ -35,86 +35,83 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Try to find a guard with the provided email
-          const guard = await prisma.guard.findFirst({
+          // Try to find a user with the provided email
+          const user = await prisma.user.findFirst({
             where: {
               email: credentials.email
             },
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
-              password: true, // Need to select password even if it causes TypeScript errors
-              profilePictureUrl: true,
+              password: true,
+              avatar: true,
               companyId: true,
+              role: true,
             },
           })
 
-          if (guard) {
+          if (user) {
             // Verify password using bcryptjs
-            // Use type assertion to handle the password field that TypeScript doesn't recognize
-            const isValid = await verifyPassword(
-              credentials.password, 
-              (guard as {password: string}).password
+            const isPasswordValid = await bcrypt.compare(
+              credentials.password,
+              user.password as string
             )
-            if (!isValid) {
-              console.log('Invalid guard password')
-              return null
-            }
 
-            return {
-              id: guard.id,
-              name: guard.name,
-              email: guard.email,
-              image: guard.profilePictureUrl || null,
-              role: 'GUARD',
-              companyId: guard.companyId,
+            if (isPasswordValid) {
+              return {
+                id: user.id,
+                name: `${user.firstName} ${user.lastName}`,
+                email: user.email,
+                image: user.avatar,
+                companyId: user.companyId,
+                role: user.role,
+              }
             }
           }
 
-          // If not a guard, try to find as manager
-          const manager = await prisma.manager.findFirst({
+          // If guard not found, try to find a manager
+          const manager = await prisma.user.findFirst({
             where: {
-              email: credentials.email
+              email: credentials.email,
+              role: 'MANAGER'
             },
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
-              password: true, // Need to select password even if it causes TypeScript errors
-              profilePictureUrl: true,
-              role: true,
+              password: true,
+              avatar: true,
               companyId: true,
+              role: true,
             },
           })
 
           if (manager) {
             // Verify password using bcryptjs
-            // Use type assertion to handle the password field that TypeScript doesn't recognize
-            const isValid = await verifyPassword(
-              credentials.password, 
-              (manager as {password: string}).password
+            const isPasswordValid = await bcrypt.compare(
+              credentials.password,
+              manager.password as string
             )
-            if (!isValid) {
-              console.log('Invalid manager password')
-              return null
-            }
 
-            return {
-              id: manager.id,
-              name: manager.name,
-              email: manager.email,
-              image: manager.profilePictureUrl || null,
-              role: manager.role,
-              companyId: manager.companyId,
+            if (isPasswordValid) {
+              return {
+                id: manager.id,
+                name: `${manager.firstName} ${manager.lastName}`,
+                email: manager.email,
+                image: manager.avatar,
+                companyId: manager.companyId,
+                role: manager.role,
+              }
             }
           }
-          
-          // No user found with the provided email
-          console.log('No user found with email:', credentials.email)
+
+          // If no user found or password invalid
           return null
         } catch (error) {
-          console.error('Auth error:', error)
+          console.error('Authentication error:', error)
           return null
         }
       }
