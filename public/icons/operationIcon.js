@@ -1,6 +1,8 @@
 import React from "react";
 
-function OperationIcon() {
+function OperationIcon({ active }) {
+  const strokeColor = active ? "#293991" : "#596D79";
+  
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -9,15 +11,22 @@ function OperationIcon() {
       fill="none"
       viewBox="0 0 24 24"
     >
+      {active && (
+        <path
+          fill="#293991"
+          opacity="0.3"
+          d="M21.167 1H2.833A1.833 1.833 0 001 2.833v18.334A1.833 1.833 0 002.833 23h18.334A1.833 1.833 0 0023 21.167V2.833A1.833 1.833 0 0021.167 1z"
+        ></path>
+      )}
       <path
-        stroke="#293991"
+        stroke={strokeColor}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.5"
         d="M21.167 1H2.833A1.833 1.833 0 001 2.833v18.334A1.833 1.833 0 002.833 23h18.334A1.833 1.833 0 0023 21.167V2.833A1.833 1.833 0 0021.167 1z"
       ></path>
       <path
-        stroke="#293991"
+        stroke={strokeColor}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.5"

@@ -11,6 +11,9 @@ import HrmIcon from '../../../public/icons/hrmIcon'
 import ProfileIcon from '../../../public/icons/userIcon'
 import SettingIcon from '../../../public/icons/settingIcon'
 
+// Import color constants
+import colors from '../../../src/constants/colors'
+
 const navItems = [
   { label: 'Home', href: '/home', icon: HomeIcon },
   { label: 'Jobs', href: '/jobs', icon: DocumentIcon },
@@ -24,33 +27,20 @@ export default function BottomNavigationBar() {
 
   // Custom renderer for each icon component based on its expected props
   const renderIcon = (label: string, isActive: boolean) => {
+    // Use primary color from constants
+    const primaryColor = colors.primary
+    
     switch (label) {
       case 'Home':
-        return <HomeIcon disable={!isActive} /> // HomeIcon expects 'disable' prop
+        return <HomeIcon active={isActive} />
       case 'Jobs':
-        return (
-          <div className={isActive ? 'text-primary' : 'text-[#596D79]'}>
-            <DocumentIcon />
-          </div>
-        )
+        return <DocumentIcon active={isActive} />
       case 'HRM':
-        return (
-          <div className={isActive ? 'text-primary' : 'text-[#596D79]'}>
-            <HrmIcon />
-          </div>
-        )
+        return <HrmIcon active={isActive} />
       case 'Profile':
-        return (
-          <div className={isActive ? 'text-primary' : 'text-[#596D79]'}>
-            <ProfileIcon />
-          </div>
-        )
+        return <ProfileIcon active={isActive} />
       case 'Settings':
-        return (
-          <div className={isActive ? 'text-primary' : 'text-[#596D79]'}>
-            <SettingIcon />
-          </div>
-        )
+        return <SettingIcon active={isActive} />
       default:
         return null
     }
@@ -65,8 +55,15 @@ export default function BottomNavigationBar() {
         return (
           <Link href={href} key={label}>
             <div className="flex flex-col items-center gap-1">
-              {renderIcon(label, isActive)}
-              <span className={clsx('text-[10px]', isActive ? 'text-primary font-medium' : 'text-[#596D79]')}>
+              <div className="flex items-center justify-center w-10 h-10">
+                {renderIcon(label, isActive)}
+              </div>
+              <span className={clsx(
+                'text-[10px]', 
+                isActive 
+                  ? 'text-primary font-medium' 
+                  : 'text-[#596D79]'
+              )}>
                 {label}
               </span>
             </div>

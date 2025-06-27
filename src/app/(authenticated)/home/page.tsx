@@ -374,14 +374,14 @@ export default function HomePage() {
       <div className="mt-12 grid grid-cols-2 gap-4">
         <Link href="/hrm" className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center justify-center h-24">
           <div className="text-primary mb-2">
-            <HrmIcon />
+            <HrmIcon active={false} />
           </div>
           <span className="text-sm font-medium text-primary">HRM</span>
         </Link>
 
         <Link href="/operations" className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center justify-center h-24">
           <div className="text-primary mb-2">
-            <OperationIcon />
+            <OperationIcon active={false} />
           </div>
           <span className="text-sm font-medium text-primary">Operations</span>
         </Link>
