@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 // Import required icon components
 import LocationIcon from '../../../../public/icons/mapPineLineIcon';
@@ -11,11 +12,215 @@ import OperationIcon from '../../../../public/icons/operationIcon';
 import CheckInIcon from '../../../../public/icons/checkInIcon';
 import ProgressIcon from '../../../../public/icons/progressIcon';
 
+// Team member data for the modal
+const teamMembers = [
+  { id: 1, name: 'John Doe', avatar: '/public/images/avatar-placeholder.png' },
+  { id: 2, name: 'Jonah Johnson', avatar: '/public/images/profile1.jpeg' },
+  { id: 3, name: 'Christopher Young', avatar: '/public/images/profile2.jpg' },
+  { id: 4, name: 'Daniel Adams', avatar: '/public/images/profile2.jpg' },
+  { id: 5, name: 'Ethan Thompson', avatar: '/public/images/profile1.jpeg' },
+  { id: 6, name: 'Ethan Thompson', avatar: '/public/images/profile1.jpeg' },
+  { id: 7, name: 'Ethan Thompson', avatar: '/public/images/profile2.jpg' },
+  { id: 8, name: 'Ethan Thompson', avatar: '/public/images/profile1.jpeg' },
+];
+
+// Toast Notification Component
+function ToastNotification({ type, message, onClose }: { type: 'reminder' | 'info', message: string, onClose: () => void }) {
+  // Use local state to manage visibility
+  const [visible, setVisible] = useState(true);
+
+  // Handle close with animation
+  const handleClose = () => {
+    setVisible(false);
+    // Call the parent onClose after animation would complete
+    setTimeout(onClose, 300);
+  };
+
+  // Early return if not visible
+  if (!visible) return null;
+  
+  return (
+    <div className="fixed top-0 left-0 right-0 z-50 flex justify-center p-4">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden">
+        <div className="flex items-start p-4">
+          <div className="flex-shrink-0 mr-3">
+            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+              <span className="text-white text-xl font-bold">!</span>
+            </div>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-gray-900 font-medium">
+              {type === 'reminder' ? 'Check-Out Reminder' : 'Info'}
+            </h3>
+            <p className="text-gray-600 mt-1">{message}</p>
+          </div>
+          <button 
+            onClick={handleClose}
+            className="text-gray-400 hover:text-gray-500 ml-2 cursor-pointer p-1"
+            aria-label="Close notification"
+            title="Close"
+            type="button"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   // Note: Date formatting is now handled in TopProfileHeader component
+  const [showModal, setShowModal] = useState(false);
+  const [showCheckoutReminder, setShowCheckoutReminder] = useState(false);
+  const [showInfoNotification, setShowInfoNotification] = useState(false);
+  
+  // Track if notifications were manually dismissed
+  const [reminderDismissed, setReminderDismissed] = useState(false);
+  const [infoDismissed, setInfoDismissed] = useState(false);
+  
+  // For testing purposes, let's show both notifications with buttons to toggle them
+  const [testMode, setTestMode] = useState(true);
+  
+  // Set checkout time to 5:40 PM for testing
+  const now = new Date();
+  const checkoutTimeObj = new Date(now);
+  checkoutTimeObj.setHours(18, 31, 0, 0); // 5:40 PM
+  
+ 
+  const checkoutHour = checkoutTimeObj.getHours();
+  const checkoutMinute = checkoutTimeObj.getMinutes();
+  const ampm = checkoutHour >= 12 ? 'PM' : 'AM';
+  const displayHour = checkoutHour % 12 || 12;
+  const checkoutTime = `${displayHour}:${checkoutMinute.toString().padStart(2, '0')} ${ampm}`;
+  
+  // For testing - show info notification immediately if we're past checkout time
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
+  
+  // Handle closing notifications
+  const handleCloseCheckoutReminder = () => setShowCheckoutReminder(false);
+  const handleCloseInfoNotification = () => setShowInfoNotification(false);
+  
+  useEffect(() => {
+    if (!testMode) {
+      // Use the calculated checkout time (2 minutes from now)
+      const now = new Date();
+      const checkoutTime = new Date(now.getTime() + 2 * 60000);
+      const checkoutHour = checkoutTime.getHours();
+      const checkoutMinute = checkoutTime.getMinutes();
+      
+      const checkTime = () => {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        
+        // Calculate time difference in minutes
+        const currentTotalMinutes = currentHour * 60 + currentMinute;
+        const checkoutTotalMinutes = checkoutHour * 60 + checkoutMinute;
+        const minutesDifference = checkoutTotalMinutes - currentTotalMinutes;
+        
+        // Show checkout reminder 10 minutes before checkout time
+        if (minutesDifference <= 10 && minutesDifference > 0) {
+          setShowCheckoutReminder(true);
+          setShowInfoNotification(false);
+        }
+        // Show info notification after checkout time
+        else if (minutesDifference < 0) {
+          setShowCheckoutReminder(false);
+          setShowInfoNotification(true);
+        }
+        else {
+          setShowCheckoutReminder(false);
+          setShowInfoNotification(false);
+        }
+      };
+      
+      // Check immediately and then every minute
+      checkTime();
+      const interval = setInterval(checkTime, 60000); // Check every minute
+      
+      return () => clearInterval(interval);
+    }
+  }, [testMode]);
+  
+  // Check notification timing based on checkout time
+  useEffect(() => {
+    if (testMode) {
+      const checkTime = () => {
+        const now = new Date();
+        const timeUntilCheckout = checkoutTimeObj.getTime() - now.getTime();
+        const minutesUntilCheckout = Math.floor(timeUntilCheckout / (1000 * 60));
+        
+        // Show checkout reminder only 10 minutes before checkout time
+        if (minutesUntilCheckout <= 10 && minutesUntilCheckout > 0) {
+          // Only show if not manually dismissed
+          if (!reminderDismissed) {
+            setShowCheckoutReminder(true);
+          }
+          setShowInfoNotification(false);
+          
+          // Reset info dismissed state when we're back in reminder territory
+          setInfoDismissed(false);
+        } 
+        // Show info notification after checkout time
+        else if (minutesUntilCheckout <= 0) {
+          setShowCheckoutReminder(false);
+          
+          // Only show if not manually dismissed
+          if (!infoDismissed) {
+            setShowInfoNotification(true);
+          }
+          
+          // Reset reminder dismissed state when we're past checkout
+          setReminderDismissed(false);
+        } 
+        // Hide both notifications if more than 10 minutes before checkout
+        else {
+          setShowCheckoutReminder(false);
+          setShowInfoNotification(false);
+          
+          // Reset dismissed states when outside notification periods
+          setReminderDismissed(false);
+          setInfoDismissed(false);
+        }
+      };
+      
+      checkTime();
+      const interval = setInterval(checkTime, 1000); // Check every second
+      
+      return () => clearInterval(interval);
+    }
+  }, [testMode, checkoutTimeObj, reminderDismissed, infoDismissed]);
   
   return (
     <div className="w-full h-full bg-gray-50 px-4">
+      {/* Check-Out Reminder Toast */}
+      {showCheckoutReminder && (
+        <ToastNotification 
+          key={`checkout-reminder-${new Date().getTime()}`}
+          type="reminder" 
+          message={`It's check-out time! Please ensure you've completed your check-out before ${checkoutTime}.`}
+          onClose={() => {
+            setShowCheckoutReminder(false);
+            setReminderDismissed(true);
+          }}
+        />
+      )}
+      
+      {/* Info Notification Toast */}
+      {showInfoNotification && (
+        <ToastNotification 
+          key={`info-notification-${new Date().getTime()}`}
+          type="info" 
+          message="An email has been sent to the supervisor as the check-out wasn't completed on time. Thank you for your understanding."
+          onClose={() => {
+            setShowInfoNotification(false);
+            setInfoDismissed(true);
+          }}
+        />
+      )}
       {/* Map View Section */}
       <div className="relative w-full">
         {/* Map Container */}
@@ -97,7 +302,7 @@ export default function HomePage() {
               
             {/* Team Member Photos */}
             <div className="flex items-center mt-3 border-t border-gray-100 pt-3">
-              <div className="flex -space-x-2">
+              <div className="flex -space-x-2 cursor-pointer" onClick={() => setShowModal(true)}>
                 {/* Team member avatars using colored placeholders for now */}
                 <div className="w-6 h-6 rounded-full bg-blue-500 border-2 border-white"></div>
                 <div className="w-6 h-6 rounded-full bg-green-500 border-2 border-white"></div>
@@ -181,6 +386,62 @@ export default function HomePage() {
           <span className="text-sm font-medium text-primary">Operations</span>
         </Link>
       </div>
+      
+      {/* Team Members Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50" 
+            onClick={() => setShowModal(false)}
+          ></div>
+          
+          {/* Modal Content */}
+          <div className="relative bg-white w-full max-w-md rounded-xl shadow-lg overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <h2 className="text-lg font-medium text-gray-900">Site A Assigned Members</h2>
+              <button 
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+                aria-label="Close modal"
+                title="Close"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Modal Body - Team Members List */}
+            <div className="p-4 max-h-[70vh] overflow-y-auto">
+              <div className="space-y-4">
+                {teamMembers.map((member) => (
+                  <div key={member.id} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                      {/* Use default avatar fallback if image fails to load */}
+                      <Image 
+                        src={member.avatar} 
+                        alt={member.name}
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // @ts-expect-error - Setting src on error
+                          e.currentTarget.src = '/images/avatars/default-avatar.png';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{member.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
